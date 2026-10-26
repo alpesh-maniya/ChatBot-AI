@@ -6,6 +6,8 @@ public sealed class ChatSession
 {
     private readonly List<ChatMessage> _messages = [];
     private readonly Lock _gate = new();
+    private string[] _documentIds = [];
+    private bool _useDocuments = true;
 
     public required Guid Id { get; init; }
     public required DateTimeOffset CreatedAt { get; init; }
@@ -46,6 +48,30 @@ public sealed class ChatSession
     public int MessageCount
     {
         get { lock (_gate) return _messages.Count; }
+    }
+
+    /// <summary>Documents attached to this conversation. Empty = answer from every ready document.</summary>
+    public IReadOnlyList<string> DocumentIds
+    {
+        get { lock (_gate) return _documentIds; }
+    }
+
+    /// <summary>False = general chat: the model answers on its own, no document search.</summary>
+    public bool UseDocuments
+    {
+        get { lock (_gate) return _useDocuments; }
+    }
+
+    // Attaching a document always means "use documents"; general chat has none attached.
+    public void SetDocuments(IEnumerable<string> documentIds, bool useDocuments = true)
+    {
+        var ids = documentIds.Where(id => !string.IsNullOrWhiteSpace(id)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        lock (_gate)
+        {
+            _useDocuments = useDocuments || ids.Length > 0;
+            _documentIds = _useDocuments ? ids : [];
+            LastActivityAt = DateTimeOffset.UtcNow;
+        }
     }
 
     private static string Summarise(string content)

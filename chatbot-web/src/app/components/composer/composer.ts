@@ -41,9 +41,7 @@ import {
       }
     </form>
 
-    <p class="composer__hint">
-      Enter to send &middot; Shift+Enter for a new line
-    </p>
+    <p class="composer__hint">Enter to send &middot; Shift+Enter for a new line &middot; {{ hint() }}</p>
   `,
   styleUrl: './composer.scss',
 })
@@ -51,6 +49,7 @@ export class ComposerComponent {
   readonly disabled = input(false);
   readonly generating = input(false);
   readonly placeholder = input('Message the assistant...');
+  readonly hint = input('');
 
   readonly send = output<string>();
   readonly stop = output<void>();

@@ -1,0 +1,27 @@
+{
+  // Wider set for use case 2, so the three official questions are not the only thing the
+  // World Bank profile is tuned on. Every region, a box, two chapters, a country with no
+  // route, and two questions the report can't answer. Facts copied from the PDF.
+  //   dotnet run --project backend/ChatBot.Eval -- --retrieval-only --passage-max-chars 700 --questions data/eval/gep-jun-2026.questions.json --doc wb-gep-jun-2026
+  "questions": [
+    { "id": "W1", "type": "region", "turns": ["What is the growth outlook for South Asia in this report?"], "goldPages": [96], "mustContain": ["6.3"] },
+    { "id": "W2", "type": "chapter", "turns": ["What does Chapter 3 say about sovereign debt in developing economies?"], "goldPages": [109, 110, 111], "mustContain": ["debt", "interest|spread|yield"] },
+    { "id": "W3", "type": "section", "turns": ["According to the executive summary, what are the main risks to the global outlook?"], "goldPages": [19], "mustContain": ["escalation|hostilities|conflict", "commodit", "inflation"] },
+
+    { "id": "R1", "type": "region", "turns": ["What growth does the report project for East Asia and Pacific in 2026?"], "goldPages": [81], "mustContain": ["4.2"] },
+    { "id": "R2", "type": "region", "turns": ["What is the 2026 growth forecast for Europe and Central Asia?"], "goldPages": [84], "mustContain": ["2.1"] },
+    { "id": "R3", "type": "region", "turns": ["How fast is Latin America expected to grow in 2026?"], "goldPages": [88], "mustContain": ["2.2"] },
+    // The region the report puts Pakistan in. Page 92: "growth in MNA is expected to weaken to 1.6 percent in 2026".
+    { "id": "R4", "type": "region", "turns": ["What is the 2026 growth forecast for the Middle East, North Africa, Afghanistan, and Pakistan region?"], "goldPages": [92], "mustContain": ["1.6"] },
+    { "id": "R5", "type": "region", "turns": ["What is the growth outlook for Sub-Saharan Africa?"], "goldPages": [99], "mustContain": ["4 percent|4%|4.0"] },
+
+    { "id": "G1", "type": "fact", "turns": ["What is global growth projected to be in 2026?"], "goldPages": [19, 25], "mustContain": ["2.5"] },
+    { "id": "B1", "type": "box", "turns": ["According to Box 1.1, what share of jobs in advanced economies is exposed to AI?"], "goldPages": [34], "mustContain": ["60"] },
+    { "id": "C4", "type": "chapter", "turns": ["According to Chapter 4, where is fiscal expenditure volatility highest among commodity exporters?"], "goldPages": [154], "mustContain": ["Sub-Saharan Africa|SSA"] },
+    // No route names India; plain search has to find it inside the South Asia section.
+    { "id": "I1", "type": "fact", "turns": ["What is India's growth forecast for fiscal year 2026/27?"], "goldPages": [96], "mustContain": ["6.6"] },
+
+    { "id": "N1", "type": "negative", "turns": ["What does the report say about the price of Bitcoin?"], "expectFallback": true },
+    { "id": "N2", "type": "negative", "turns": ["Who won the 2026 FIFA World Cup?"], "expectFallback": true }
+  ]
+}

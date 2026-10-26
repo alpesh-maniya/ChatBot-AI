@@ -11,4 +11,12 @@
     <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.27.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ChatBot.Rag\ChatBot.Rag.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ChatBot.Api.Tests" />
+  </ItemGroup>
+
 </Project>

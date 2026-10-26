@@ -1,36 +1,140 @@
 <section class="panel">
-  <div class="panel__scroll" #scroller>
-    <div class="panel__inner">
-      @if (store.messages().length === 0 && !store.streamingText()) {
-        <div class="empty">
-          <h1 class="empty__title">What can I help with?</h1>
-          <p class="empty__subtitle">
-            Ask a question, then follow up &mdash; this conversation is kept as context.
-          </p>
-          <ul class="empty__examples">
-            <li>&ldquo;What is RAG?&rdquo;</li>
-            <li>&ldquo;What are its main components?&rdquo;</li>
-            <li>&ldquo;Can you explain the second one in detail?&rdquo;</li>
-          </ul>
-        </div>
-      }
+  <header class="panel__header">
+    <h2 class="panel__title">{{ title() }}</h2>
 
-      @for (message of store.messages(); track message.id) {
-        <app-message [role]="message.role" [content]="message.content" />
+    <div class="panel__actions">
+      @if (store.modelStatus()?.ragEnabled && store.documents().length > 0) {
+        <app-scope-menu
+          [documents]="store.documents()"
+          [activeIds]="scopeIds()"
+          [general]="store.generalChat()"
+          (useReports)="store.useReports($event)"
+          (useGeneral)="store.useGeneralChat()"
+        />
       }
-
-      @if (store.streamingText()) {
-        <app-message role="assistant" [content]="store.streamingText()" [pending]="true" />
-      } @else if (store.isGenerating()) {
-        <div class="thinking" role="status">
-          <span></span><span></span><span></span>
-        </div>
-      }
-
-      @if (store.error(); as error) {
-        <p class="error" role="alert">{{ error }}</p>
+      @if (store.modelStatus(); as status) {
+        <span class="badge" [class.badge--ready]="store.modelReady()" [class.badge--error]="!!status.error || !!status.indexError">
+          <span class="badge__dot"></span>
+          {{ status.error || status.indexError ? 'Offline' : store.modelReady() ? 'Ready' : 'Loading' }}
+        </span>
       }
     </div>
+  </header>
+
+  <div class="panel__body">
+    <div class="panel__scroll" #scroller>
+      <div class="panel__inner">
+        @if (store.messages().length === 0 && !store.streamingText()) {
+          <div class="welcome">
+            <div class="welcome__mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="26" height="26">
+                <path
+                  d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4A2.5 2.5 0 0 1 4 13.5v-8Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </div>
+            <h1 class="welcome__title">{{ heading() }}</h1>
+            <p class="welcome__subtitle">{{ subtitle() }}</p>
+
+            @if (store.generalChat()) {
+              <div class="general">
+                @for (example of generalExamples; track example) {
+                  <button type="button" class="suggestion" [disabled]="!store.canSend()" (click)="send(example)">
+                    <span>{{ example }}</span>
+                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                      <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+                }
+              </div>
+            } @else if (cards().length > 0) {
+              <div class="reports" [class.reports--single]="cards().length === 1">
+                @for (card of cards(); track card.doc.docId) {
+                  <article class="report" [attr.data-tone]="card.tone">
+                    <header class="report__head">
+                      <span class="report__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="16" height="16">
+                          <path d="M7 3h7l5 5v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm7 0v5h5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round" />
+                        </svg>
+                      </span>
+                      <span class="report__names">
+                        <span class="report__name">{{ card.doc.title }}</span>
+                        <span class="report__meta">{{ meta(card.doc) }}</span>
+                      </span>
+                    </header>
+
+                    <div class="report__questions">
+                      @for (q of card.questions; track q) {
+                        <button type="button" class="suggestion" [disabled]="!store.canSend()" (click)="send(q)">
+                          <span>{{ q }}</span>
+                          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                            <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                          </svg>
+                        </button>
+                      }
+                    </div>
+                  </article>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        @for (message of store.messages(); track message.id) {
+          <app-message
+            [role]="message.role"
+            [content]="message.content"
+            [sources]="message.sources ?? []"
+            [cited]="message.citedSources"
+            [grounded]="message.grounded"
+            (sourceSelected)="store.showSource($event)"
+          />
+        }
+
+        @if (store.streamingText()) {
+          <app-message
+            role="assistant"
+            [content]="store.streamingText()"
+            [pending]="true"
+            [sources]="store.streamingSources()?.sources ?? []"
+            [grounded]="store.streamingSources()?.grounded"
+            (sourceSelected)="store.showSource($event)"
+          />
+        } @else if (store.isGenerating()) {
+          <!-- The wait is the model reading the prompt (the passages found, not the PDFs:
+               those were indexed once), so say that rather than "reading documents". -->
+          <div class="thinking" role="status" aria-label="Preparing the answer">
+            <span></span><span></span><span></span>
+            <em>
+              @if (store.streamingSources()?.sources?.length; as found) {
+                Found {{ found }} passage{{ found === 1 ? '' : 's' }} · writing the answer
+              } @else {
+                Searching the reports
+              }
+              @if (waited() >= 3) {
+                · {{ waited() }}s
+              }
+            </em>
+          </div>
+        }
+
+        @if (store.error(); as error) {
+          <p class="error" role="alert">
+            {{ error }}
+            <button type="button" class="error__close" (click)="store.error.set(null)" aria-label="Dismiss">×</button>
+          </p>
+        }
+      </div>
+    </div>
+
+    @if (!atBottom()) {
+      <button type="button" class="jump" (click)="scrollToBottom('smooth')" aria-label="Scroll to latest">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+          <path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+    }
   </div>
 
   <div class="panel__footer">
@@ -39,6 +143,7 @@
         [disabled]="!store.canSend()"
         [generating]="store.isGenerating()"
         [placeholder]="placeholder()"
+        [hint]="hint()"
         (send)="send($event)"
         (stop)="store.stop()"
       />
@@ -47,11 +152,17 @@
            have something available. -->
       @if (store.lastContext(); as context) {
         <p class="telemetry">
-          {{ context.includedMessages }} turns in context &middot;
-          {{ context.promptTokens | number }} prompt tokens &middot;
-          {{ context.responseBudget | number }} reserved for the reply
-          @if (context.droppedMessages > 0) {
-            &middot; <strong>{{ context.droppedMessages }} older turns dropped</strong>
+          {{ context.promptTokens | number }} prompt tokens
+          @if (context.sourceCount > 0) {
+            &middot; {{ context.sourceCount }} passages
+          }
+          @if (context.includedMessages > 1) {
+            &middot; follow-up, {{ context.includedMessages - 1 }} earlier turns kept
+          }
+          @if (store.lastCompletion(); as done) {
+            @if (done.firstTokenSeconds > 0) {
+              &middot; first word after {{ done.firstTokenSeconds | number: '1.0-0' }}s
+            }
           }
           @if (context.contentTruncated) {
             &middot; <strong>message truncated to fit</strong>

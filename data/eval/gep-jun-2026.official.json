@@ -1,0 +1,15 @@
+{
+  // Official sample questions for use case 2 (RAG-Hands-On-Use-Cases.docx).
+  // Pass bar from the brief: the right chapter and section, no facts mixed in from another
+  // region or chapter.
+  //   dotnet run --project backend/ChatBot.Eval -- --questions data/eval/gep-jun-2026.official.json --doc wb-gep-jun-2026
+  "questions": [
+    // p. 96, South Asia > Outlook: "Growth in SAR is expected to soften to 6.3 percent in 2026 ..."
+    { "id": "W1", "type": "section", "turns": ["What is the growth outlook for South Asia in this report?"], "goldPages": [96], "mustContain": ["6.3"] },
+    // Chapter 3 (pp. 105-120) is on government debt and interest rates; main findings p. 111.
+    { "id": "W2", "type": "section", "turns": ["What does Chapter 3 say about sovereign debt in developing economies?"], "goldPages": [109, 110, 111], "mustContain": ["debt", "interest|spread|yield"] },
+    // p. 18, Executive Summary: "A renewed escalation of hostilities or more prolonged disruptions
+    // to commodity flows could further raise commodity prices, intensify inflationary pressures ..."
+    { "id": "W3", "type": "section", "turns": ["According to the executive summary, what are the main risks to the global outlook?"], "goldPages": [18, 19], "mustContain": ["escalation|hostilities|conflict", "commodit", "inflation"] }
+  ]
+}

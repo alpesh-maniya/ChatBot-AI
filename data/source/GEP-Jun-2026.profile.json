@@ -1,0 +1,85 @@
+{
+  // Ingest profile for the World Bank's Global Economic Prospects, June 2026
+  // (GEP-Jun-2026.pdf, 200 pages). Page numbers are PDF pages, 1-based.
+  // Fonts and page ranges were read with:
+  //   dotnet run --project backend/ChatBot.Ingest -- --input data/source/GEP-Jun-2026.pdf --fonts
+  "docId": "wb-gep-jun-2026",
+  "title": "Global Economic Prospects, June 2026",
+  "sourceFile": "GEP-Jun-2026.pdf",
+  "subject": "the World Bank's Global Economic Prospects report (June 2026)",
+  "exampleQuestions": [
+    "What is the growth outlook for South Asia in this report?",
+    "What does Chapter 3 say about sovereign debt in developing economies?",
+    "According to the executive summary, what are the main risks to the global outlook?"
+  ],
+
+  // Chapter titles are only on the divider pages, so each chapter is a part and its title
+  // is the top of every section path. Printed page numbers sit in the running header, which
+  // is dropped, so citations give PDF pages; labels stay empty.
+  "parts": [
+    { "name": "FrontMatter", "label": "", "fromPage": 1, "toPage": 22 },
+    { "name": "Chapter1", "label": "", "fromPage": 23, "toPage": 68, "section": "Chapter 1: Global Outlook" },
+    { "name": "Chapter2", "label": "", "fromPage": 69, "toPage": 106, "section": "Chapter 2: Regional Outlooks" },
+    { "name": "Chapter3", "label": "", "fromPage": 107, "toPage": 142, "section": "Chapter 3: A Rising Challenge: Sovereign Debt Levels and Interest Rates in EMDEs" },
+    { "name": "Chapter4", "label": "", "fromPage": 143, "toPage": 183, "section": "Chapter 4: Navigating Volatility: Fiscal Policy and Commodity Price Swings" },
+    { "name": "Appendix", "label": "", "fromPage": 184, "toPage": 191, "section": "Statistical Appendix" },
+    { "name": "Topics", "label": "", "fromPage": 192, "toPage": 200, "section": "Selected Topics" }
+  ],
+
+  // 1-6 covers, title pages and copyright; 7-14 contents (dot leaders and chapter names
+  // match almost any question); 23, 69, 107, 143, 185 chapter dividers; 198-200 back cover.
+  // 63-68, 103-105, 139-142, 179-183 the chapters' reference lists: paper titles full of
+  // the question's keywords ("Fiscal Discipline and the Cost of Public Debt Service") that
+  // never answer anything, and ranked first for "What does Chapter 3 say about debt?".
+  "skipPages": [
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 23, 24, 69, 70, 107, 108, 143, 144, 184, 185, 186, 198, 199, 200,
+    63, 64, 65, 66, 67, 68, 103, 104, 105, 139, 140, 141, 142, 179, 180, 181, 182, 183
+  ],
+
+  // Two columns: acronym, meaning. Feeds the acronym map, so "SAR" in a question also
+  // searches for "South Asia region".
+  "glossaryPages": [21, 22],
+
+  // Chart furniture: 5.7pt axis ticks, 7pt panel titles ("D. Consumer confidence in
+  // China"), 6pt source and note lines. Kept: the 8pt oblique figure summaries, which are
+  // sentences, and the 7.6pt statistical tables.
+  "dropStyles": [
+    { "font": "Helvetica", "maxSize": 6.5 },
+    { "font": "HelveticaLTStd-Bold", "maxSize": 7.5 },
+    { "font": "HelveticaLTStd-Roman", "maxSize": 6.5 },
+    { "font": "HelveticaLTStd-Light", "maxSize": 6.5 }
+  ],
+
+  "headingStyles": [
+    // Foreword, Executive Summary, Acknowledgments, Abbreviations
+    { "font": "HelveticaLTStd-Cond", "minSize": 20, "maxSize": 30, "level": 2 },
+    // Summary, Global context, South Asia, Introduction; 14pt for the chapter 2 overview
+    { "font": "HelveticaLTStd-Bold", "minSize": 13.5, "maxSize": 16.5, "level": 2 },
+    // BOX 1.1 How much will AI affect global growth? - a self-contained article
+    { "font": "HelveticaLTStd-Bold", "minSize": 9.5, "maxSize": 10.5, "level": 2, "pattern": "^BOX \\d" },
+    // Outlook, Recent developments, Risks, Global trade: body size, sans face
+    { "font": "HelveticaLTStd-Roman", "minSize": 10.5, "maxSize": 11.5, "level": 3 },
+    // Downside risks, Upside risk
+    { "font": "AGaramondPro-BoldItalic", "minSize": 10.5, "maxSize": 11.5, "level": 4 }
+  ],
+
+  // Every regional and chapter sub-section opens with its headline figure; when the best
+  // match and another share a section, the section's opening becomes passage [1].
+  "sectionLead": true,
+
+  // Names a reader uses for a section. Region terms are the region names and the report's
+  // own abbreviations, not "Middle East" or "Africa" alone: the conflict in the Middle East
+  // runs through every chapter, and a filter that guesses wrong hides the answer.
+  // "Chapter N" needs no entry; it is matched against the part titles.
+  "routes": [
+    { "terms": ["executive summary"], "section": "Executive Summary" },
+    { "terms": ["foreword"], "section": "Foreword" },
+    { "terms": ["South Asia", "SAR"], "section": "South Asia" },
+    { "terms": ["East Asia and Pacific", "East Asia and the Pacific", "EAP"], "section": "East Asia and Pacific" },
+    { "terms": ["Europe and Central Asia", "ECA"], "section": "Europe and Central Asia" },
+    { "terms": ["Latin America", "LAC"], "section": "Latin America and the Caribbean" },
+    { "terms": ["Middle East and North Africa", "Middle East, North Africa", "MNA", "MENA", "Afghanistan", "Pakistan"], "section": "Middle East, North Africa, Afghanistan, and Pakistan" },
+    { "terms": ["Sub-Saharan Africa", "SSA"], "section": "Sub-Saharan Africa" },
+    { "terms": ["statistical appendix"], "section": "Statistical Appendix" }
+  ]
+}

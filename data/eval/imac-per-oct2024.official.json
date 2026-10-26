@@ -1,0 +1,13 @@
+{
+  // Official sample questions for use case 3 (RAG-Hands-On-Use-Cases.docx).
+  // Pass bar from the brief: the right number from the chart or table, not a nearby sentence.
+  //   dotnet run --project backend/ChatBot.Eval -- --questions data/eval/imac-per-oct2024.official.json --doc apple-imac-per-oct2024
+  "questions": [
+    // pp. 6-7, with footnote 18 (ENERGY STAR Program Requirements for Computers) on p. 12.
+    { "id": "M1", "type": "visual", "turns": ["How much less energy does iMac use compared to the ENERGY STAR requirement?"], "goldPages": [6, 7], "mustContain": ["58"] },
+    // p. 10 table: total 346 kg CO2e; Production 50%, Transportation 5%, Product use 45%.
+    { "id": "M2", "type": "visual", "turns": ["What is the total carbon footprint of the iMac, and how much of that comes from product use versus manufacturing?"], "goldPages": [10], "mustContain": ["346", "45", "50"] },
+    // p. 1 call-out and p. 4: "100 percent recycled aluminum in the stand".
+    { "id": "M3", "type": "visual", "turns": ["What material is the iMac stand made from, and what percentage of it is recycled?"], "goldPages": [1, 2, 4], "mustContain": ["aluminum|aluminium", "100"] }
+  ]
+}

@@ -27,6 +27,9 @@ public sealed class LlamaOptions
 
     public uint BatchSize { get; set; } = 512;
 
+    /// <summary>Null keeps llama.cpp's default. Changes prefill speed, not the answer.</summary>
+    public bool? FlashAttention { get; set; }
+
     public float Temperature { get; set; } = 0.7f;
     public float TopP { get; set; } = 0.9f;
     public int TopK { get; set; } = 40;

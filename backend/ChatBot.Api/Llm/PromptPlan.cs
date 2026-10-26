@@ -19,4 +19,13 @@ public sealed record PromptPlan
 
     /// <summary>A single message was too big and had its content cut.</summary>
     public required bool ContentTruncated { get; init; }
+
+    /// <summary>Retrieved passages that made it into the prompt. Zero when not grounded.</summary>
+    public int SourceCount { get; init; }
+
+    /// <summary>Prompt tokens spent on the Sources block.</summary>
+    public int SourceTokens { get; init; }
+
+    /// <summary>Retrieved passages left out because the window was full.</summary>
+    public int DroppedSources { get; init; }
 }

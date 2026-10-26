@@ -11,7 +11,11 @@ public interface ILanguageModel : ITokenCounter
 
     /// <summary>Streams a completion for an already-templated prompt. Yields decoded
     /// fragments, not whole words.</summary>
-    IAsyncEnumerable<string> StreamAsync(string prompt, int maxTokens, CancellationToken cancellationToken);
+    IAsyncEnumerable<string> StreamAsync(
+        string prompt,
+        int maxTokens,
+        CancellationToken cancellationToken,
+        SamplingOverrides? sampling = null);
 }
 
 public sealed record ModelInfo(string Name, uint ContextSize, ulong ParameterCount, bool Ready, string? LoadError);

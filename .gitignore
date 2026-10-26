@@ -10,3 +10,11 @@ dist/
 
 # Model weights - gigabytes of binary, fetched by scripts/download-model.ps1
 models/*.gguf
+
+# RAG - rebuilt by ChatBot.Ingest, the API and ChatBot.Eval
+data/index/
+data/uploads/
+eval/results/
+
+# Visual Studio local state
+.vs/

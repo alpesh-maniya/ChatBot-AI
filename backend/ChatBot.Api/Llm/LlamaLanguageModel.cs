@@ -71,6 +71,7 @@ public sealed class LlamaLanguageModel : ILanguageModel, IAsyncDisposable
                 // past core count measured slower here, not faster.
                 Threads = _options.Threads ?? Math.Max(1, Environment.ProcessorCount / 2)
             };
+            if (_options.FlashAttention is { } flash) _modelParams.FlashAttention = flash;
 
             var started = System.Diagnostics.Stopwatch.StartNew();
             _weights = await LLamaWeights.LoadFromFileAsync(_modelParams, cancellationToken);
@@ -106,7 +107,8 @@ public sealed class LlamaLanguageModel : ILanguageModel, IAsyncDisposable
     public async IAsyncEnumerable<string> StreamAsync(
         string prompt,
         int maxTokens,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+        [EnumeratorCancellation] CancellationToken cancellationToken,
+        SamplingOverrides? sampling = null)
     {
         if (_executor is null)
         {
@@ -119,10 +121,10 @@ public sealed class LlamaLanguageModel : ILanguageModel, IAsyncDisposable
             AntiPrompts = _template.StopSequences,
             SamplingPipeline = new DefaultSamplingPipeline
             {
-                Temperature = _options.Temperature,
-                TopP = _options.TopP,
-                TopK = _options.TopK,
-                RepeatPenalty = _options.RepeatPenalty,
+                Temperature = sampling?.Temperature ?? _options.Temperature,
+                TopP = sampling?.TopP ?? _options.TopP,
+                TopK = sampling?.TopK ?? _options.TopK,
+                RepeatPenalty = sampling?.RepeatPenalty ?? _options.RepeatPenalty,
                 Seed = _options.Seed ?? (uint)Random.Shared.Next()
             }
         };

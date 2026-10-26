@@ -3,8 +3,11 @@ using System.Text.Json;
 using ChatBot.Api.Chat;
 using ChatBot.Api.Contracts;
 using ChatBot.Api.Llm;
+using ChatBot.Api.Rag;
 using ChatBot.Api.Sessions;
+using ChatBot.Rag.Retrieval;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
 
 namespace ChatBot.Api.Controllers;
@@ -15,6 +18,7 @@ public sealed class SessionsController(
     ISessionStore sessions,
     ChatService chat,
     ILanguageModel model,
+    RagRuntime rag,
     IOptions<ChatOptions> chatOptions,
     ILogger<SessionsController> logger) : ControllerBase
 {
@@ -26,12 +30,34 @@ public sealed class SessionsController(
     // is keyed by anything but that id.
     [HttpPost]
     [ProducesResponseType<SessionSummaryDto>(StatusCodes.Status201Created)]
-    public ActionResult<SessionSummaryDto> Create()
+    public ActionResult<SessionSummaryDto> Create(
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] CreateSessionRequest? request = null)
     {
         var session = sessions.Create();
-        logger.LogInformation("Created session {SessionId}.", session.Id);
+        if (request is not null) session.SetDocuments(request.DocumentIds ?? [], request.UseDocuments ?? true);
+        logger.LogInformation("Created session {SessionId} with {Docs} attached document(s).", session.Id, session.DocumentIds.Count);
 
         return CreatedAtAction(nameof(Get), new { id = session.Id }, SessionSummaryDto.From(session));
+    }
+
+    // Which documents this conversation answers from. Replaces the whole list; an empty
+    // list goes back to "every ready document". History is kept either way.
+    [HttpPut("{id:guid}/documents")]
+    [ProducesResponseType<SessionSummaryDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public ActionResult<SessionSummaryDto> SetDocuments(Guid id, [FromBody] SetDocumentsRequest request)
+    {
+        if (!sessions.TryGet(id, out var session)) return NotFound();
+
+        var unknown = request.DocumentIds.Where(d => rag.Find(d) is null).ToList();
+        if (unknown.Count > 0)
+        {
+            return Problem($"Unknown document id(s): {string.Join(", ", unknown)}.", statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        session.SetDocuments(request.DocumentIds, request.UseDocuments);
+        return Ok(SessionSummaryDto.From(session));
     }
 
     [HttpGet]
@@ -84,6 +110,20 @@ public sealed class SessionsController(
             return;
         }
 
+        // Checked here as well as in ChatService so "still indexing" is a status code the
+        // client can show, not an error event in the middle of a stream.
+        if (sessions.TryGet(id, out var session)
+            && rag.AnswersFromDocuments(session.UseDocuments, session.DocumentIds)
+            && !QueryBuilder.IsSmallTalk(message))
+        {
+            var (_, problem) = rag.ResolveScope(session.DocumentIds);
+            if (problem is not null)
+            {
+                await WriteProblemAsync(rag.IsReady ? StatusCodes.Status409Conflict : StatusCodes.Status503ServiceUnavailable, problem);
+                return;
+            }
+        }
+
         Response.Headers.ContentType = "text/event-stream";
         Response.Headers.CacheControl = "no-cache";
         Response.Headers.Connection = "keep-alive";
@@ -99,7 +139,14 @@ public sealed class SessionsController(
                     case ChatStreamEvent.ContextPlanned(var plan):
                         await SendEventAsync("context", new ContextInfoDto(
                             plan.IncludedMessages, plan.DroppedMessages, plan.PromptTokens,
-                            plan.ResponseBudget, plan.ContentTruncated));
+                            plan.ResponseBudget, plan.ContentTruncated,
+                            plan.SourceCount, plan.SourceTokens, plan.DroppedSources));
+                        break;
+
+                    // Before the first chunk, so the UI can show where the answer comes
+                    // from while it is still being written.
+                    case ChatStreamEvent.SourcesRetrieved(var sources, var grounded):
+                        await SendEventAsync("sources", new SourcesEventDto(grounded, sources.Select(SourceRefDto.From).ToArray()));
                         break;
 
                     case ChatStreamEvent.Chunk(var text):
@@ -108,8 +155,8 @@ public sealed class SessionsController(
                         await SendEventAsync("chunk", new { text });
                         break;
 
-                    case ChatStreamEvent.Completed(var msg, var tokens, var elapsed, var rate):
-                        await SendEventAsync("done", new CompletionInfoDto(msg.Id, tokens, elapsed, rate));
+                    case ChatStreamEvent.Completed(var msg, var tokens, var elapsed, var rate, var uncited, var ttft):
+                        await SendEventAsync("done", new CompletionInfoDto(msg.Id, tokens, elapsed, rate, msg.CitedSources, uncited, msg.Content, ttft));
                         break;
                 }
             }
@@ -117,6 +164,10 @@ public sealed class SessionsController(
         catch (SessionNotFoundException ex)
         {
             await SendEventAsync("error", new { message = ex.Message, code = "session_not_found" });
+        }
+        catch (RagNotReadyException ex)
+        {
+            await SendEventAsync("error", new { message = ex.Message, code = "index_not_ready" });
         }
         catch (OperationCanceledException)
         {

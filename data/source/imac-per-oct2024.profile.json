@@ -1,0 +1,48 @@
+{
+  // Ingest profile for Apple's iMac Product Environmental Report, October 2024
+  // (iMac_PER_Oct2024 (1).pdf, 12 pages). Page numbers are PDF pages, 1-based; regions are
+  // in points from the bottom-left corner, read with:
+  //   dotnet run --project backend/ChatBot.Ingest -- --input "data/source/iMac_PER_Oct2024 (1).pdf" --fonts --pages 2,10,12
+  "docId": "apple-imac-per-oct2024",
+  "title": "iMac Product Environmental Report (October 2024)",
+  "sourceFile": "iMac_PER_Oct2024 (1).pdf",
+  "subject": "Apple's iMac Product Environmental Report (October 2024)",
+  "exampleQuestions": [
+    "How much less energy does iMac use compared to the ENERGY STAR requirement?",
+    "What is the total carbon footprint of the iMac, and how much of that comes from product use versus manufacturing?",
+    "What material is the iMac stand made from, and what percentage of it is recycled?"
+  ],
+
+  "parts": [
+    { "name": "Document", "label": "", "fromPage": 1, "toPage": 12 }
+  ],
+
+  // One family, SF Hello. Page titles are 24pt semibold ("Use", "Make": one short word,
+  // which the default rules reject as a memo label); call-out titles 11-16pt semibold.
+  // The 18pt semibold line on page 1 is a claim ("iMac uses 100% recycled aluminum in the
+  // stand"), not a title.
+  "headingStyles": [
+    { "font": "SFHello-Semibold", "minSize": 20, "maxSize": 30, "level": 2 },
+    { "font": "SFHello-Semibold", "minSize": 17, "maxSize": 19, "level": 0 },
+    { "font": "SFHello-Semibold", "minSize": 10.5, "maxSize": 16.5, "level": 3 }
+  ],
+
+  // Numbered endnotes; their markers are 4.7-8pt digits inside 7-12pt text.
+  "endnotePages": [11, 12],
+
+  // Label and value columns under a header bar; the zone finder returns them in pieces.
+  "tables": [
+    { "page": 10, "left": 210, "bottom": 505, "right": 600, "top": 662, "title": "Greenhouse gas emissions, iMac (two ports) 256GB" },
+    { "page": 10, "left": 210, "bottom": 405, "right": 600, "top": 447, "title": "Carbon footprint of another configuration" },
+    { "page": 12, "left": 215, "bottom": 412, "right": 600, "top": 530, "title": "Power consumption for iMac" }
+  ],
+
+  // The emissions bar chart. Its value labels are text ("445 kg Baseline emissions",
+  // "-99 kg Emissions reductions", "346 kg iMac emissions"); the bars are not.
+  "figures": [
+    { "page": 2, "left": 230, "bottom": 75, "right": 600, "top": 550, "title": "Chart: iMac emissions, from the baseline to after reductions (kg CO2e)" }
+  ],
+
+  // "76%" over "recycled content in fiber packaging", on page 6.
+  "joinCallouts": true
+}

@@ -1,0 +1,38 @@
+{
+  // Ingest profile for the U.S. Government Publishing Office 2018 Annual Report
+  // (GPO-Anual-report.pdf, 82 pages). Page numbers are PDF pages, 1-based.
+  "docId": "gpo-ar-fy2018",
+  "title": "GPO 2018 Annual Report",
+  "sourceFile": "GPO-Anual-report.pdf",
+  "subject": "the U.S. Government Publishing Office (GPO) 2018 Annual Report",
+  "exampleQuestions": [
+    "What were GPO's total revenues in FY 2018?",
+    "How many passports did GPO produce in FY 2018?",
+    "Which libraries joined the FDLP in FY 2018?"
+  ],
+
+  // The narrative report and the audited financial statements each restart their
+  // printed page numbers, so citations name the part as well as the page.
+  "parts": [
+    { "name": "AnnualReport", "label": "Annual Report", "fromPage": 1, "toPage": 30 },
+    { "name": "FinancialStatements", "label": "Financial Statements", "fromPage": 31, "toPage": 82, "runningHeaderIsSection": true }
+  ],
+
+  // 1, 31, 32 covers; 2, 29 blank; 30 back cover; 33 table of contents (dot leaders would
+  // match almost any query); 34, 50, 53, 57 section dividers; 51 audit report cover.
+  "skipPages": [1, 2, 29, 30, 31, 32, 33, 34, 50, 51, 53, 57],
+
+  "orgChartPages": [28],
+  "glossaryPages": [82],
+
+  // Bar charts in the Management Discussion and Analysis. Only axis ticks are in the
+  // text layer; the values are not.
+  "chartPages": [40, 41, 42, 43, 44, 45, 46, 47, 48],
+  "chartFont": "Calibri",
+
+  // The text layer itself drops the hyphen in these two.
+  "replacements": {
+    "passportrelated": "passport-related",
+    "governmentwide": "government-wide"
+  }
+}

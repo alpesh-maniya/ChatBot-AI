@@ -1,0 +1,26 @@
+{
+  // Wider set for use case 3: facts that sit in a chart, two tables, call-outs and
+  // endnotes, plus two questions the report can't answer. Facts copied from the PDF.
+  //   dotnet run --project backend/ChatBot.Eval -- --retrieval-only --passage-max-chars 700 --questions data/eval/imac-per-oct2024.questions.json --doc apple-imac-per-oct2024
+  "questions": [
+    { "id": "M1", "type": "footnote", "turns": ["How much less energy does iMac use compared to the ENERGY STAR requirement?"], "goldPages": [7], "mustContain": ["58"] },
+    { "id": "M2", "type": "table", "turns": ["What is the total carbon footprint of the iMac, and how much of that comes from product use versus manufacturing?"], "goldPages": [10], "mustContain": ["346", "45", "50"] },
+    { "id": "M3", "type": "callout", "turns": ["What material is the iMac stand made from, and what percentage of it is recycled?"], "goldPages": [1, 2, 4], "mustContain": ["aluminum|aluminium", "100"] },
+
+    // Page 12 table, 115V column.
+    { "id": "T1", "type": "table", "turns": ["How much power does iMac use when idle with the display on at 115V?"], "goldPages": [12], "mustContain": ["20.6"] },
+    // Page 10, second table.
+    { "id": "T2", "type": "table", "turns": ["What is the carbon footprint of the iMac with four ports and 512GB?"], "goldPages": [10], "mustContain": ["391"] },
+    { "id": "T3", "type": "table", "turns": ["What share of the iMac's carbon footprint comes from end-of-life processing?"], "goldPages": [10], "mustContain": ["1%|1 percent"] },
+    // Page 2 chart labels.
+    { "id": "C1", "type": "chart", "turns": ["What were the iMac's baseline emissions, and by how much did Apple's reductions lower them?"], "goldPages": [2], "mustContain": ["445", "99"] },
+    // Page 6 call-out.
+    { "id": "P1", "type": "callout", "turns": ["How much recycled content is in the iMac's fiber packaging?"], "goldPages": [6], "mustContain": ["76"] },
+    { "id": "P2", "type": "fact", "turns": ["How much recycled plastic does iMac use, and in how many components?"], "goldPages": [4], "mustContain": ["50", "13"] },
+    // Endnote 18 on page 12, cited on page 7.
+    { "id": "F1", "type": "footnote", "turns": ["What are the iMac's ENERGY STAR energy figures based on?"], "goldPages": [7, 12], "mustContain": ["Program Requirements"] },
+
+    { "id": "N1", "type": "negative", "turns": ["What is the battery life of the iPhone 16?"], "expectFallback": true },
+    { "id": "N2", "type": "negative", "turns": ["How much does the iMac cost?"], "expectFallback": true }
+  ]
+}

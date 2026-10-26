@@ -10,13 +10,16 @@
     To use a different size, pass -Model. Remember to update Llama:ModelPath in
     backend/ChatBot.Api/appsettings.json to match.
 
+    The RAG pipeline also needs the embedding model: -Model bge-small (~36 MB).
+
 .EXAMPLE
     ./scripts/download-model.ps1
+    ./scripts/download-model.ps1 -Model bge-small
     ./scripts/download-model.ps1 -Model qwen2.5-3b
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('qwen2.5-0.5b', 'qwen2.5-1.5b', 'qwen2.5-3b')]
+    [ValidateSet('qwen2.5-0.5b', 'qwen2.5-1.5b', 'qwen2.5-3b', 'bge-small')]
     [string]$Model = 'qwen2.5-1.5b',
 
     [string]$OutputDirectory = (Join-Path $PSScriptRoot '..\models')
@@ -39,6 +42,12 @@ $catalogue = @{
         File = 'qwen2.5-3b-instruct-q4_k_m.gguf'
         Url  = 'https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q4_k_m.gguf'
         Size = '~2.0 GB  - better answers, roughly half the speed'
+    }
+    # Embedding model for RAG (Rag:Embedding:ModelPath), not a chat model.
+    'bge-small'    = @{
+        File = 'bge-small-en-v1.5-q8_0.gguf'
+        Url  = 'https://huggingface.co/CompendiumLabs/bge-small-en-v1.5-gguf/resolve/main/bge-small-en-v1.5-q8_0.gguf'
+        Size = '~36 MB   - embeddings for the report index (384 dims)'
     }
 }
 
@@ -67,4 +76,5 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host ("Done: {0:N2} GB" -f ((Get-Item $target).Length / 1GB)) -ForegroundColor Green
-Write-Host "Ensure Llama:ModelPath points at '../../models/$($entry.File)'."
+$setting = if ($Model -eq 'bge-small') { 'Rag:Embedding:ModelPath' } else { 'Llama:ModelPath' }
+Write-Host "Ensure $setting points at '../../models/$($entry.File)'."

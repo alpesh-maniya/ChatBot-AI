@@ -1,0 +1,37 @@
+{
+  // Starter evaluation set for the GPO 2018 Annual Report (design doc section 11.1).
+  // Gold pages are PDF pages (1-82). "mustContain": every entry must appear in the answer;
+  // "a|b" means either form counts. Comparison ignores case, "$" and thousands commas.
+  // Replace or extend with the official sample questions when they arrive.
+  "questions": [
+    { "id": "Q01", "type": "fact", "turns": ["What were GPO's total revenues in FY 2018?"], "goldPages": [6, 14, 25, 26, 43, 59], "mustContain": ["874.5 million|874,466,000|874,466"] },
+    { "id": "Q02", "type": "fact", "turns": ["What was GPO's net income in FY 2018?"], "goldPages": [25, 26, 44, 59], "mustContain": ["52.6 million|52,624"] },
+    { "id": "Q03", "type": "fact", "turns": ["How many people did GPO employ at the end of FY 2018?"], "goldPages": [7, 12, 14], "mustContain": ["1,737"] },
+    { "id": "Q04", "type": "conflict", "turns": ["How many passports did GPO produce in FY 2018?"], "goldPages": [6, 14, 18, 41], "mustContain": ["15,901,600|16 million|16.1 million"] },
+    { "id": "Q05", "type": "fact", "turns": ["Who signed the transmittal letter of the annual report, and on what date?"], "goldPages": [3], "mustContain": ["Crawford", "April 25, 2019"] },
+    { "id": "Q06", "type": "fact", "turns": ["How many libraries are in the Federal Depository Library Program?"], "goldPages": [8, 15, 19, 39], "mustContain": ["1,133"] },
+    { "id": "Q07", "type": "list", "turns": ["Which libraries joined the FDLP in FY 2018?"], "goldPages": [19], "mustContain": ["Staten Island", "Miles City", "Pope County", "Loudon County"] },
+    { "id": "Q08", "type": "table", "turns": ["What was the Congressional Publishing appropriation in FY 1980 compared with FY 2018, in constant dollars?"], "goldPages": [11, 12], "mustContain": ["285.4", "79.5"] },
+    { "id": "Q09", "type": "table", "turns": ["What was GPO's headcount in 1990?"], "goldPages": [12], "mustContain": ["4,977"] },
+    { "id": "Q10", "type": "fact", "turns": ["How much did Agency Distribution Services revenue grow in FY 2018?"], "goldPages": [23, 59], "mustContain": ["13 million|12,478|12.5 million", "9.2 million|9,266|9.3 million"] },
+    { "id": "Q11", "type": "fact", "turns": ["What were GPO's two largest expense categories in FY 2018?"], "goldPages": [25, 59], "mustContain": ["341.5|341,474|private sector|procured|printing and reproduction", "220.2|220,195|personnel compensation"] },
+    { "id": "Q12", "type": "fact", "turns": ["Who audited GPO's FY 2018 financial statements and what was the opinion?"], "goldPages": [25, 52, 54, 55], "mustContain": ["KPMG", "unmodified|clean"] },
+    { "id": "Q13", "type": "conflict", "turns": ["What was the fund balance with Treasury at the end of FY 2017 and FY 2018?"], "goldPages": [26, 27, 40, 58, 69], "mustContain": ["644.8|644,807", "585.9|585,883|553,885"] },
+    { "id": "Q14", "type": "layout", "turns": ["Who is GPO's Chief Financial Officer?"], "goldPages": [28], "mustContain": ["Boesch"] },
+    { "id": "Q15", "type": "table", "turns": ["Who was GPO's largest customer in FY 2018?"], "goldPages": [81], "mustContain": ["Department of State", "270,596|270.6|33.3"] },
+    { "id": "Q16", "type": "glossary", "turns": ["What does SID stand for?"], "goldPages": [6, 18, 37, 82], "mustContain": ["Security and Intelligent Documents"] },
+    { "id": "Q17", "type": "table", "turns": ["What was the FERS employer contribution rate for regular employees in FY 2018?"], "goldPages": [80], "mustContain": ["16.2"] },
+    { "id": "Q18", "type": "fact", "turns": ["What discount rate was used for the workers' compensation liability at September 30, 2018?"], "goldPages": [73], "mustContain": ["3.12"] },
+    { "id": "Q19", "type": "table", "turns": ["What is the estimated useful life of plant machinery and equipment?"], "goldPages": [64], "mustContain": ["10"] },
+    { "id": "Q20", "type": "units", "turns": ["How large was the Passport Capital Projects Reserve in FY 2018?"], "goldPages": [25, 26, 44], "mustContain": ["28,745|28.7 million"] },
+    { "id": "Q21", "type": "follow-up", "turns": ["What were total revenues in FY 2018?", "And in FY 2017?"], "goldPages": [26, 43, 59], "mustContain": ["874.3|874,297"] },
+    { "id": "Q22", "type": "follow-up", "turns": ["How many passports were produced in FY 2018?", "Why did inventory go up that year?"], "goldPages": [41, 70], "mustContain": ["passport"] },
+    { "id": "Q23", "type": "summary", "turns": ["Summarise GPO's plant modernization in FY 2018."], "goldPages": [10], "mustContain": ["8-color|8-Color|Perfector", "2019"] },
+    { "id": "Q24", "type": "summary", "turns": ["What happened with govinfo in FY 2018?"], "goldPages": [4, 5, 13, 17, 22, 23], "mustContain": ["FDsys"] },
+    { "id": "Q25", "type": "partial", "turns": ["Who is the Director of GPO?"], "goldPages": [3, 4, 28], "mustContain": ["Vacant|Crawford"] },
+    { "id": "N01", "type": "negative", "turns": ["What were GPO's revenues in FY 2020?"], "goldPages": [], "expectFallback": true },
+    { "id": "N02", "type": "negative", "turns": ["What was the Congressional Record on-time delivery rate in 2016?"], "goldPages": [], "expectFallback": true },
+    { "id": "N03", "type": "negative", "turns": ["What is the capital of France?"], "goldPages": [], "expectFallback": true },
+    { "id": "N04", "type": "speculation", "turns": ["Will GPO's revenue grow in FY 2019?"], "goldPages": [49], "mustContain": ["break-even|break even"] }
+  ]
+}

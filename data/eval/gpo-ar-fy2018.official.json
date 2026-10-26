@@ -1,0 +1,12 @@
+{
+  // Official sample questions for use case 1 (RAG-Hands-On-Use-Cases.docx).
+  // Pass bar from the brief: the exact fact from the surrounding paragraph, nothing added.
+  //   dotnet run --project backend/ChatBot.Eval -- --questions data/eval/gpo-ar-fy2018.official.json --doc gpo-ar-fy2018
+  "questions": [
+    { "id": "O1", "type": "fact", "turns": ["How many depository libraries did GPO staff visit in FY 2018?"], "goldPages": [21], "mustContain": ["166"] },
+    // p. 3: "the full-scale deployment of govinfo ... the successor to our FDsys website" (FY 2018);
+    // pp. 9 and 22: FDsys retired and replaced by govinfo in December 2018.
+    { "id": "O2", "type": "fact", "turns": ["What new digital system replaced FDsys, and when was it fully deployed?"], "goldPages": [3, 9, 22], "mustContain": ["govinfo", "2018"] },
+    { "id": "O3", "type": "fact", "turns": ["How much did GPO procure in printing and information products in FY 2018 on behalf of federal agencies?"], "goldPages": [5], "mustContain": ["375 million"] }
+  ]
+}

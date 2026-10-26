@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import type {
   ChatEvent,
+  ChunkDetail,
+  DocumentInfo,
   ModelStatus,
   SessionDetail,
   SessionSummary,
@@ -29,8 +31,39 @@ export class ChatApi {
     return firstValueFrom(this.http.get<SessionSummary[]>(`${this.base}/sessions`));
   }
 
-  createSession(): Promise<SessionSummary> {
-    return firstValueFrom(this.http.post<SessionSummary>(`${this.base}/sessions`, {}));
+  /** useDocuments false (with no ids) starts it as a general chat. */
+  createSession(documentIds: string[] = [], useDocuments = true): Promise<SessionSummary> {
+    return firstValueFrom(this.http.post<SessionSummary>(`${this.base}/sessions`, { documentIds, useDocuments }));
+  }
+
+  /** useDocuments false (with no ids) switches the conversation to general chat. */
+  setSessionDocuments(id: string, documentIds: string[], useDocuments = true): Promise<SessionSummary> {
+    return firstValueFrom(
+      this.http.put<SessionSummary>(`${this.base}/sessions/${id}/documents`, { documentIds, useDocuments }),
+    );
+  }
+
+  listDocuments(): Promise<DocumentInfo[]> {
+    return firstValueFrom(this.http.get<DocumentInfo[]>(`${this.base}/documents`));
+  }
+
+  /** Resolves once the file is stored and queued; indexing carries on server-side. */
+  async uploadDocument(file: File): Promise<DocumentInfo> {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    try {
+      return await firstValueFrom(this.http.post<DocumentInfo>(`${this.base}/documents`, form));
+    } catch (err) {
+      throw new Error(problemDetail(err) ?? 'The upload failed.');
+    }
+  }
+
+  async deleteDocument(docId: string): Promise<void> {
+    try {
+      await firstValueFrom(this.http.delete<void>(`${this.base}/documents/${encodeURIComponent(docId)}`));
+    } catch (err) {
+      throw new Error(problemDetail(err) ?? 'Could not delete the document.');
+    }
   }
 
   getSession(id: string): Promise<SessionDetail> {
@@ -39,6 +72,19 @@ export class ChatApi {
 
   deleteSession(id: string): Promise<void> {
     return firstValueFrom(this.http.delete<void>(`${this.base}/sessions/${id}`));
+  }
+
+  getChunk(docId: string, chunkId: string): Promise<ChunkDetail> {
+    return firstValueFrom(
+      this.http.get<ChunkDetail>(
+        `${this.base}/documents/${encodeURIComponent(docId)}/chunks/${encodeURIComponent(chunkId)}`,
+      ),
+    );
+  }
+
+  /** Opens in the browser's PDF viewer on the cited page. */
+  pdfUrl(docId: string, page: number): string {
+    return `${this.base}/documents/${encodeURIComponent(docId)}/file#page=${page}`;
   }
 
   /**
@@ -95,6 +141,12 @@ export class ChatApi {
   }
 }
 
+// The API answers errors as problem+json; its "detail" is written for the user.
+function problemDetail(err: unknown): string | null {
+  const body = (err as { error?: { detail?: string } } | null)?.error;
+  return typeof body?.detail === 'string' ? body.detail : null;
+}
+
 function parseEvent(raw: string): ChatEvent | null {
   let name = 'message';
   const dataLines: string[] = [];
@@ -113,6 +165,7 @@ function parseEvent(raw: string): ChatEvent | null {
     const data = JSON.parse(dataLines.join('\n'));
     switch (name) {
       case 'context':
+      case 'sources':
       case 'chunk':
       case 'done':
       case 'error':
