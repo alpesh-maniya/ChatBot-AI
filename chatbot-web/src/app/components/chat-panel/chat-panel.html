@@ -1,0 +1,63 @@
+<section class="panel">
+  <div class="panel__scroll" #scroller>
+    <div class="panel__inner">
+      @if (store.messages().length === 0 && !store.streamingText()) {
+        <div class="empty">
+          <h1 class="empty__title">What can I help with?</h1>
+          <p class="empty__subtitle">
+            Ask a question, then follow up &mdash; this conversation is kept as context.
+          </p>
+          <ul class="empty__examples">
+            <li>&ldquo;What is RAG?&rdquo;</li>
+            <li>&ldquo;What are its main components?&rdquo;</li>
+            <li>&ldquo;Can you explain the second one in detail?&rdquo;</li>
+          </ul>
+        </div>
+      }
+
+      @for (message of store.messages(); track message.id) {
+        <app-message [role]="message.role" [content]="message.content" />
+      }
+
+      @if (store.streamingText()) {
+        <app-message role="assistant" [content]="store.streamingText()" [pending]="true" />
+      } @else if (store.isGenerating()) {
+        <div class="thinking" role="status">
+          <span></span><span></span><span></span>
+        </div>
+      }
+
+      @if (store.error(); as error) {
+        <p class="error" role="alert">{{ error }}</p>
+      }
+    </div>
+  </div>
+
+  <div class="panel__footer">
+    <div class="panel__inner">
+      <app-composer
+        [disabled]="!store.canSend()"
+        [generating]="store.isGenerating()"
+        [placeholder]="placeholder()"
+        (send)="send($event)"
+        (stop)="store.stop()"
+      />
+
+      <!-- Shows the context window doing its job, and why an answer did or didn't
+           have something available. -->
+      @if (store.lastContext(); as context) {
+        <p class="telemetry">
+          {{ context.includedMessages }} turns in context &middot;
+          {{ context.promptTokens | number }} prompt tokens &middot;
+          {{ context.responseBudget | number }} reserved for the reply
+          @if (context.droppedMessages > 0) {
+            &middot; <strong>{{ context.droppedMessages }} older turns dropped</strong>
+          }
+          @if (context.contentTruncated) {
+            &middot; <strong>message truncated to fit</strong>
+          }
+        </p>
+      }
+    </div>
+  </div>
+</section>

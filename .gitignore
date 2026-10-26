@@ -1,0 +1,12 @@
+# .NET
+bin/
+obj/
+*.user
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+
+# Model weights - gigabytes of binary, fetched by scripts/download-model.ps1
+models/*.gguf
